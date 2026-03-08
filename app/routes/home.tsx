@@ -28,7 +28,7 @@ const Home = () => {
     const [twitter, setTwitter] = useState("")
     const [showSuccess, setShowSuccess] = useState(false)
 
-    const isSubmitting = navigation.state === "submitting"
+    const isSubmitting = navigation.state !== "idle"
 
     useEffect(() => {
         if (actionData?.success) {
