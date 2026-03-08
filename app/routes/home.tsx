@@ -44,48 +44,58 @@ const Home = () => {
         }
     }, [actionData])
 
-    const isDisabled = !message || !twitter || isSubmitting
+    const isDisabled = !message || !twitter
 
     return (
         <div className="flex min-h-screen items-center justify-center">
-            <Form method="post" className="flex flex-col gap-4">
-                <p className="h-6 text-green-600">
+            <Form method="post" aria-busy={isSubmitting}>
+                <p
+                    role="status"
+                    aria-live="polite"
+                    aria-atomic="true"
+                    className="mb-4 min-h-6 text-green-600"
+                >
                     {showSuccess && "Message sent!"}
                 </p>
 
-                <div className="flex flex-col">
-                    <label htmlFor="message">Message</label>
-                    <input
-                        type="text"
-                        id="message"
-                        name="message"
-                        className="w-80 border border-black px-4 py-2"
-                        required
-                        value={message}
-                        onChange={e => setMessage(e.target.value)}
-                    />
-                </div>
-
-                <div className="flex flex-col">
-                    <label htmlFor="twitter">Twitter Handle</label>
-                    <input
-                        type="text"
-                        id="twitter"
-                        name="twitter"
-                        className="w-80 border border-black px-4 py-2"
-                        required
-                        value={twitter}
-                        onChange={e => setTwitter(e.target.value)}
-                    />
-                </div>
-
-                <button
-                    type="submit"
-                    disabled={isDisabled}
-                    className="cursor-pointer bg-black text-white px-4 py-2 hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-400"
+                <fieldset
+                    disabled={isSubmitting}
+                    className="m-0 flex flex-col gap-4 border-0 p-0"
                 >
-                    {isSubmitting ? "Sending..." : "Send"}
-                </button>
+                    <div className="flex flex-col">
+                        <label htmlFor="message">Message</label>
+                        <input
+                            type="text"
+                            id="message"
+                            name="message"
+                            className="w-80 border border-black px-4 py-2"
+                            required
+                            value={message}
+                            onChange={e => setMessage(e.target.value)}
+                        />
+                    </div>
+
+                    <div className="flex flex-col">
+                        <label htmlFor="twitter">Twitter Handle</label>
+                        <input
+                            type="text"
+                            id="twitter"
+                            name="twitter"
+                            className="w-80 border border-black px-4 py-2"
+                            required
+                            value={twitter}
+                            onChange={e => setTwitter(e.target.value)}
+                        />
+                    </div>
+
+                    <button
+                        type="submit"
+                        disabled={isDisabled}
+                        className="cursor-pointer bg-black text-white px-4 py-2 hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-400"
+                    >
+                        {isSubmitting ? "Sending..." : "Send"}
+                    </button>
+                </fieldset>
             </Form>
         </div>
     )
