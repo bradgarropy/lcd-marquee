@@ -14,8 +14,13 @@ export class Mqtt implements DurableObject {
 
     async fetch(request: Request): Promise<Response> {
         const upgradeHeader = request.headers.get("Upgrade")
-        if (upgradeHeader !== "websocket") {
+
+        if (upgradeHeader?.toLowerCase() !== "websocket") {
             return new Response("Expected WebSocket", {status: 426})
+        }
+
+        if (!this.env.MQTT_URL) {
+            return new Response("MQTT not configured", {status: 503})
         }
 
         const pair = new WebSocketPair()
@@ -31,10 +36,6 @@ export class Mqtt implements DurableObject {
     }
 
     private connectMqtt(): void {
-        if (!this.env.MQTT_URL) {
-            return
-        }
-
         this.mqttClient = mqtt.connect(this.env.MQTT_URL, {
             username: this.env.MQTT_USERNAME,
             password: this.env.MQTT_PASSWORD,
@@ -57,6 +58,23 @@ export class Mqtt implements DurableObject {
             } catch {
                 // Client disconnected
             }
+        }
+    }
+
+    private disconnectMqtt(): void {
+        this.mqttClient?.end()
+        this.mqttClient = null
+    }
+
+    webSocketClose(): void {
+        if (this.state.getWebSockets().length === 0) {
+            this.disconnectMqtt()
+        }
+    }
+
+    webSocketError(): void {
+        if (this.state.getWebSockets().length === 0) {
+            this.disconnectMqtt()
         }
     }
 }

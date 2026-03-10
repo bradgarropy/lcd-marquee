@@ -23,7 +23,8 @@ export default {
         // Handle WebSocket connections at /ws
         if (url.pathname === "/ws") {
             const upgradeHeader = request.headers.get("Upgrade")
-            if (upgradeHeader !== "websocket") {
+
+            if (upgradeHeader?.toLowerCase() !== "websocket") {
                 return new Response("Expected WebSocket", {status: 426})
             }
 

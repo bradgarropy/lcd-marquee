@@ -1,6 +1,6 @@
 import {useEffect, useRef, useState} from "react"
 
-import type {Message} from "~/mqtt.server"
+import {type Message, messageSchema} from "~/mqtt.server"
 
 interface UseMqttOptions {
     onMessage?: (message: Message) => void
@@ -36,10 +36,10 @@ const useMqtt = (options: UseMqttOptions = {}) => {
 
             ws.onmessage = event => {
                 try {
-                    const data: Message = JSON.parse(event.data)
-                    onMessageRef.current?.(data)
+                    const message = messageSchema.parse(JSON.parse(event.data))
+                    onMessageRef.current?.(message)
                 } catch {
-                    // Ignore non-JSON messages
+                    // Ignore invalid messages
                 }
             }
 
