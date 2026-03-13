@@ -1,4 +1,4 @@
-import {useEffect, useRef, useState} from "react"
+import {useEffect, useState} from "react"
 
 import {useCharWidth} from "~/hooks/useCharWidth"
 import type {Message} from "~/schemas/message"
@@ -22,59 +22,52 @@ const CHAR_COUNT = 16
 const LCD = ({messages, onMessageComplete}: LCDProps) => {
     const charWidth = useCharWidth()
     const [offset, setOffset] = useState(0)
-    const completedRef = useRef<string | null>(null)
+    const [isComplete, setIsComplete] = useState(false)
 
     // Always work with the first message in the queue
     const currentMessage = messages[0]
     // Use the message ID to detect when we move to next message
     const messageId = currentMessage?.id ?? null
 
-    // Reset offset when the current message changes
+    // Calculate total steps for the current message
+    const maxLength = currentMessage
+        ? Math.max(currentMessage.message.length, currentMessage.twitter.length)
+        : 0
+    // Total steps: scroll from off-screen right to fully off-screen left
+    const totalSteps = CHAR_COUNT + maxLength + 2
+
+    // Reset state when the current message changes
     useEffect(() => {
         setOffset(0)
-        completedRef.current = null
+        setIsComplete(false)
     }, [messageId])
 
-    // Run the scrolling animation
+    // Effect 1: Run the scrolling animation (only depends on messageId)
     useEffect(() => {
-        if (!currentMessage) {
+        if (!currentMessage || isComplete) {
             return
         }
 
-        const maxLength = Math.max(
-            currentMessage.message.length,
-            currentMessage.twitter.length,
-        )
-        // Total steps: scroll from off-screen right to fully off-screen left
-        const totalSteps = CHAR_COUNT + maxLength + 2
-
-        let timeoutId: ReturnType<typeof setTimeout> | null = null
-
         const interval = setInterval(() => {
-            setOffset(prev => {
-                const next = prev + 1
-
-                if (next > totalSteps) {
-                    if (completedRef.current !== messageId) {
-                        completedRef.current = messageId
-                        clearInterval(interval)
-                        // Defer the callback to avoid updating parent state during render
-                        timeoutId = setTimeout(() => onMessageComplete?.(), 0)
-                    }
-                    return prev
-                }
-
-                return next
-            })
+            setOffset(prev => prev + 1)
         }, 200)
 
         return () => {
             clearInterval(interval)
-            if (timeoutId !== null) {
-                clearTimeout(timeoutId)
-            }
         }
-    }, [messageId, currentMessage, onMessageComplete])
+    }, [messageId, currentMessage, isComplete])
+
+    // Effect 2: Detect completion and notify parent (depends on offset)
+    useEffect(() => {
+        if (!currentMessage || isComplete) {
+            return
+        }
+
+        if (offset > totalSteps) {
+            setIsComplete(true)
+            onMessageComplete?.()
+        }
+    }, [offset, totalSteps, currentMessage, isComplete, onMessageComplete])
 
     const emptyLine = BLOCK_CHAR.repeat(CHAR_COUNT)
     const translateX = (CHAR_COUNT + 1 - offset) * charWidth
