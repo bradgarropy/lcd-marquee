@@ -1,10 +1,11 @@
 import {useCallback, useEffect, useState} from "react"
 import {useFetcher} from "react-router"
 
-import {LCD} from "~/components/LCD"
+import {LCD, type MessageWithId} from "~/components/LCD"
 import {useMqtt} from "~/hooks/useMqtt"
 import {publish} from "~/mqtt.server"
-import {type Message, messageSchema} from "~/schemas/message"
+import {messageSchema} from "~/schemas/message"
+import type {Message} from "~/schemas/message"
 
 import type {Route} from "./+types/home"
 
@@ -36,12 +37,12 @@ const Home = () => {
     const [message, setMessage] = useState("")
     const [twitter, setTwitter] = useState("")
     const [showSuccess, setShowSuccess] = useState(false)
-    const [messages, setMessages] = useState<Message[]>([])
+    const [messages, setMessages] = useState<MessageWithId[]>([])
 
     const isSubmitting = fetcher.state !== "idle"
 
     const handleMqttMessage = useCallback((msg: Message) => {
-        setMessages(prev => [...prev, msg])
+        setMessages(prev => [...prev, {...msg, id: crypto.randomUUID()}])
     }, [])
 
     const handleMessageComplete = useCallback(() => {

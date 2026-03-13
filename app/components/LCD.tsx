@@ -1,10 +1,14 @@
-import {useEffect, useState} from "react"
+import {useEffect, useRef, useState} from "react"
 
 import {useCharWidth} from "~/hooks/useCharWidth"
 import type {Message} from "~/schemas/message"
 
+interface MessageWithId extends Message {
+    id: string
+}
+
 interface LCDProps {
-    messages: Message[]
+    messages: MessageWithId[]
     onMessageComplete?: () => void
 }
 
@@ -18,14 +22,18 @@ const CHAR_COUNT = 16
 const LCD = ({messages, onMessageComplete}: LCDProps) => {
     const charWidth = useCharWidth()
     const [offset, setOffset] = useState(0)
+    const completedRef = useRef<string | null>(null)
 
     // Always work with the first message in the queue
     const currentMessage = messages[0]
+    // Use the message ID to detect when we move to next message
+    const messageId = currentMessage?.id ?? null
 
     // Reset offset when the current message changes
     useEffect(() => {
         setOffset(0)
-    }, [currentMessage])
+        completedRef.current = null
+    }, [messageId])
 
     // Run the scrolling animation
     useEffect(() => {
@@ -47,9 +55,12 @@ const LCD = ({messages, onMessageComplete}: LCDProps) => {
                 const next = prev + 1
 
                 if (next > totalSteps) {
-                    clearInterval(interval)
-                    // Defer the callback to avoid updating parent state during render
-                    timeoutId = setTimeout(() => onMessageComplete?.(), 0)
+                    if (completedRef.current !== messageId) {
+                        completedRef.current = messageId
+                        clearInterval(interval)
+                        // Defer the callback to avoid updating parent state during render
+                        timeoutId = setTimeout(() => onMessageComplete?.(), 0)
+                    }
                     return prev
                 }
 
@@ -63,7 +74,7 @@ const LCD = ({messages, onMessageComplete}: LCDProps) => {
                 clearTimeout(timeoutId)
             }
         }
-    }, [currentMessage, onMessageComplete])
+    }, [messageId, currentMessage, onMessageComplete])
 
     const emptyLine = BLOCK_CHAR.repeat(CHAR_COUNT)
     const translateX = (CHAR_COUNT + 1 - offset) * charWidth
@@ -114,3 +125,4 @@ const LCD = ({messages, onMessageComplete}: LCDProps) => {
 }
 
 export {LCD}
+export type {MessageWithId}
