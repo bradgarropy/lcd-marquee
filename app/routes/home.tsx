@@ -11,7 +11,9 @@ import type {Route} from "./+types/home"
 const action = async ({request, context}: Route.ActionArgs) => {
     const formData = await request.formData()
     const twitter = formData.get("twitter") as string
-    formData.set("twitter", `@${twitter}`)
+    if (!twitter.startsWith("@")) {
+        formData.set("twitter", `@${twitter}`)
+    }
     const message = messageSchema.parse(Object.fromEntries(formData))
 
     await publish(message, context.cloudflare.env)
