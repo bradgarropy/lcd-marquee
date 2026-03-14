@@ -14,6 +14,7 @@ A web application to send real-time messages to an LCD sitting on my desk.
 - [Zod][zod]
 - [Cloudflare Workers][cloudflare-workers]
 - [HiveMQ][hivemq]
+- [LCD Dot Matrix][lcd-dot-matrix]
 
 ## Development
 
@@ -56,3 +57,4 @@ If you're interested in the hardware side of things, check out the [lcd-marquee-
 [hivemq]: https://hivemq.com
 [zod]: https://zod.dev
 [vite]: https://vite.dev
+[lcd-dot-matrix]: https://fontstruct.com/fontstructions/show/142810/lcd_dot_matrix
